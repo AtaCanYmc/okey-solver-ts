@@ -1,6 +1,6 @@
 // src/engine/solver.ts
 import {Tile, Meld, Arrangement} from '../types';
-import { RuleValidator } from '../rules/validator';
+import {RuleValidator} from '../rules/validator';
 
 export class SolverEngine {
 
@@ -52,7 +52,7 @@ export class SolverEngine {
         // Kalan boş taşları bul
         const remainingTiles = this.getRemainingTiles(bestArrangement, tiles);
 
-        return { melds: bestArrangement, remainingTiles, totalScore: maxScore };
+        return {melds: bestArrangement, remainingTiles, totalScore: maxScore};
     }
 
     /**
@@ -105,8 +105,12 @@ export class SolverEngine {
                             const cartesianTiles = this.cartesianProduct(sequenceOptions);
 
                             for (const tileSet of cartesianTiles) {
-                                const score = tileSet.reduce((sum, t) => sum + t.value, 0);
-                                melds.push({ type: 'SERI', tiles: tileSet, score });
+                                // VALIDATOR KONTROLÜ
+                                const meldType = RuleValidator.evaluateGroup(tileSet);
+                                if (meldType === 'SERI') {
+                                    const score = tileSet.reduce((sum, t) => sum + t.value, 0);
+                                    melds.push({type: 'SERI', tiles: tileSet, score});
+                                }
                             }
                         }
                     } else {
@@ -116,7 +120,7 @@ export class SolverEngine {
                 }
             }
 
-            // Not: 12-13-1 serisi (Okey kuralı) için buraya özel bir modül (circular check) eklenebilir.
+            // TODO: 12-13-1 serisi (Okey kuralı) için buraya özel bir modül (circular check) eklenebilir.
         }
 
         return melds;
@@ -150,13 +154,16 @@ export class SolverEngine {
                 // 3'lü per kombinasyonları
                 const combinations3 = this.getCombinations(availableColors, 3);
                 for (const combo of combinations3) {
-                    // Cartesian product: Eğer elimizde aynı renkten birden fazla taş varsa
-                    // (Örn: 2 tane Kırmızı 5), her biri için ayrı bir per senaryosu oluşturmalıyız.
                     const tileOptions = combo.map(color => colors.get(color)!);
                     const cartesianTiles = this.cartesianProduct(tileOptions);
 
                     for (const tileSet of cartesianTiles) {
-                        melds.push({ type: 'PER', tiles: tileSet, score: value * 3 });
+                        // VALIDATOR KONTROLÜ
+                        const meldType = RuleValidator.evaluateGroup(tileSet);
+                        if (meldType === 'PER') {
+                            const score = tileSet.reduce((sum, t) => sum + t.value, 0);
+                            melds.push({type: 'PER', tiles: tileSet, score});
+                        }
                     }
                 }
 
@@ -166,7 +173,12 @@ export class SolverEngine {
                     const cartesianTiles = this.cartesianProduct(tileOptions);
 
                     for (const tileSet of cartesianTiles) {
-                        melds.push({ type: 'PER', tiles: tileSet, score: value * 4 });
+                        // VALIDATOR KONTROLÜ
+                        const meldType = RuleValidator.evaluateGroup(tileSet);
+                        if (meldType === 'PER') {
+                            const score = tileSet.reduce((sum, t) => sum + t.value, 0);
+                            melds.push({type: 'PER', tiles: tileSet, score});
+                        }
                     }
                 }
             }
