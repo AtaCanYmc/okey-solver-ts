@@ -1,6 +1,6 @@
 {
   "name": "okey-solver-ts",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "A TypeScript library for evaluating and finding the best arrangement of tiles for games like Rummikub and Okey 101.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -16,7 +16,7 @@
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
-    "url": "https://github.com/AtaCanYmc/okey-solver-ts.git"
+    "url": "git+https://github.com/AtaCanYmc/okey-solver-ts.git"
   },
   "scripts": {
     "build": "tsc",
