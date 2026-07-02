@@ -16,8 +16,14 @@ export interface Meld {
     score: number;
 }
 
+export interface OkeyMeta {
+    color: TileColor;
+    value: number;
+}
+
 export interface Arrangement {
     melds: Meld[];
     remainingTiles: Tile[];
     totalScore: number;
 }
+
