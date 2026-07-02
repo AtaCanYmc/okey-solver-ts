@@ -1,15 +1,37 @@
 {
   "name": "okey-solver-ts",
   "version": "1.0.0",
-  "description": "",
+  "description": "A TypeScript library for evaluating and finding the best arrangement of tiles for games like Rummikub and Okey 101.",
   "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "keywords": [
+    "okey",
+    "101",
+    "rummikub",
+    "algorithm",
+    "backtracking",
+    "solver"
+  ],
+  "author": "Ata Can",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/AtaCanYmc/okey-solver-ts.git"
+  },
   "scripts": {
     "build": "tsc",
-    "test": "jest"
+    "test": "jest",
+    "lint": "eslint src --ext .ts",
+    "format": "prettier --write \"src/**/*.ts\""
   },
   "devDependencies": {
     "@types/jest": "^30.0.0",
+    "@typescript-eslint/eslint-plugin": "^6.21.0",
+    "@typescript-eslint/parser": "^6.21.0",
+    "eslint": "^8.57.1",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-prettier": "^5.5.6",
     "jest": "^30.4.2",
+    "prettier": "^3.9.4",
     "ts-jest": "^29.4.11",
     "typescript": "^5.5.3"
   },
@@ -19,6 +41,5 @@
     "testMatch": [
       "**/test/**/*.test.ts"
     ]
-  },
-  "private": true
+  }
 }
