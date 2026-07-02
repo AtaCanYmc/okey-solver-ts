@@ -1,0 +1,945 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Okey Solver — İnteraktif Demo</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0f0f1a;
+      --surface: #17172a;
+      --surface2: #1e1e35;
+      --border: #2a2a4a;
+      --accent: #6c63ff;
+      --accent2: #a78bfa;
+      --text: #e2e2f0;
+      --text-muted: #7070a0;
+      --red: #ef4444;
+      --blue: #3b82f6;
+      --yellow: #eab308;
+      --black: #94a3b8;
+      --joker: #a855f7;
+      --success: #22c55e;
+      --tile-size: 54px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      background-image:
+        radial-gradient(ellipse at 20% 50%, rgba(108,99,255,0.08) 0%, transparent 60%),
+        radial-gradient(ellipse at 80% 10%, rgba(167,139,250,0.06) 0%, transparent 50%);
+    }
+
+    header {
+      text-align: center;
+      padding: 2.5rem 1rem 1.5rem;
+      border-bottom: 1px solid var(--border);
+      background: linear-gradient(180deg, rgba(108,99,255,0.05) 0%, transparent 100%);
+    }
+
+    header h1 {
+      font-size: 2.5rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, #6c63ff, #a78bfa, #c084fc);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      letter-spacing: -0.03em;
+    }
+
+    header p {
+      margin-top: .5rem;
+      color: var(--text-muted);
+      font-size: .95rem;
+    }
+
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 2rem 1.5rem;
+      display: grid;
+      grid-template-columns: 360px 1fr;
+      gap: 1.5rem;
+    }
+
+    @media (max-width: 800px) {
+      .container { grid-template-columns: 1fr; }
+    }
+
+    /* ── Panel ── */
+    .panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 1.5rem;
+    }
+
+    .panel h2 {
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      margin-bottom: 1.2rem;
+    }
+
+    /* ── Form ── */
+    .input-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: .6rem;
+      margin-bottom: .8rem;
+    }
+
+    select, input[type=number] {
+      width: 100%;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      color: var(--text);
+      border-radius: 8px;
+      padding: .55rem .8rem;
+      font-size: .9rem;
+      font-family: inherit;
+      appearance: none;
+      outline: none;
+      transition: border-color .2s;
+    }
+
+    select:focus, input[type=number]:focus {
+      border-color: var(--accent);
+    }
+
+    .btn-add {
+      width: 100%;
+      padding: .65rem;
+      background: linear-gradient(135deg, var(--accent), #7c3aed);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: .9rem;
+      font-weight: 600;
+      font-family: inherit;
+      transition: opacity .2s, transform .15s;
+      margin-bottom: 1rem;
+    }
+
+    .btn-add:hover { opacity: .88; transform: translateY(-1px); }
+    .btn-add:active { transform: translateY(0); }
+
+    /* ── Tile Display ── */
+    .hand-area {
+      min-height: 80px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: .4rem;
+      padding: .8rem;
+      background: var(--bg);
+      border-radius: 10px;
+      border: 1px dashed var(--border);
+      margin-bottom: .8rem;
+    }
+
+    .hand-area.empty { align-items: center; justify-content: center; }
+    .hand-area.empty::after {
+      content: 'Taş yok';
+      color: var(--text-muted);
+      font-size: .85rem;
+    }
+
+    .tile {
+      width: var(--tile-size);
+      height: calc(var(--tile-size) * 1.3);
+      border-radius: 8px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 1.05rem;
+      cursor: pointer;
+      user-select: none;
+      position: relative;
+      transition: transform .15s, box-shadow .15s;
+      border: 2px solid transparent;
+    }
+
+    .tile:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(0,0,0,.4); }
+    .tile:hover::after { content: '✕'; position: absolute; top: -8px; right: -8px; width: 18px; height: 18px; background: var(--red); border-radius: 50%; font-size: .65rem; display: flex; align-items: center; justify-content: center; color: #fff; }
+
+    .tile-label { font-size: .55rem; text-transform: uppercase; letter-spacing: .05em; opacity: .7; margin-top: 2px; }
+
+    .tile.RED    { background: linear-gradient(145deg, #7f1d1d, #991b1b); color: #fca5a5; border-color: var(--red); }
+    .tile.BLUE   { background: linear-gradient(145deg, #1e3a8a, #1d4ed8); color: #93c5fd; border-color: var(--blue); }
+    .tile.YELLOW { background: linear-gradient(145deg, #713f12, #a16207); color: #fde047; border-color: var(--yellow); }
+    .tile.BLACK  { background: linear-gradient(145deg, #1e293b, #334155); color: #cbd5e1; border-color: var(--black); }
+    .tile.JOKER  { background: linear-gradient(145deg, #4a1d96, #6d28d9); color: #d8b4fe; border-color: var(--joker); }
+
+    /* ── Okey Meta ── */
+    .okey-section {
+      margin-top: 1rem;
+      padding-top: 1rem;
+      border-top: 1px solid var(--border);
+    }
+
+    .okey-section label {
+      display: block;
+      font-size: .8rem;
+      color: var(--text-muted);
+      margin-bottom: .4rem;
+    }
+
+    .toggle-okey {
+      display: flex;
+      align-items: center;
+      gap: .5rem;
+      margin-bottom: .8rem;
+    }
+
+    .toggle-okey input[type=checkbox] { width: 16px; height: 16px; accent-color: var(--accent); }
+
+    /* ── Action Buttons ── */
+    .action-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: .6rem;
+      margin-top: 1rem;
+    }
+
+    .btn-solve {
+      padding: .75rem;
+      background: linear-gradient(135deg, var(--success), #16a34a);
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: .95rem;
+      font-weight: 700;
+      font-family: inherit;
+      transition: opacity .2s, transform .15s;
+    }
+
+    .btn-pairs {
+      padding: .75rem;
+      background: linear-gradient(135deg, #0369a1, #0284c7);
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: .95rem;
+      font-weight: 700;
+      font-family: inherit;
+      transition: opacity .2s, transform .15s;
+    }
+
+    .btn-solve:hover, .btn-pairs:hover { opacity: .88; transform: translateY(-1px); }
+
+    .btn-clear {
+      grid-column: span 2;
+      padding: .5rem;
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: .85rem;
+      font-family: inherit;
+      transition: border-color .2s, color .2s;
+    }
+
+    .btn-clear:hover { border-color: var(--red); color: var(--red); }
+
+    /* ── Results ── */
+    .result-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+
+    .score-bar {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .score-card {
+      flex: 1;
+      min-width: 110px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1rem 1.2rem;
+      text-align: center;
+    }
+
+    .score-card .val {
+      font-size: 2rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, #6c63ff, #a78bfa);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .score-card .lbl {
+      font-size: .75rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      margin-top: .2rem;
+    }
+
+    .meld-group {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 1.2rem;
+    }
+
+    .meld-group h3 {
+      font-size: .8rem;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      color: var(--text-muted);
+      margin-bottom: .8rem;
+      display: flex;
+      align-items: center;
+      gap: .5rem;
+    }
+
+    .meld-badge {
+      padding: .15rem .55rem;
+      border-radius: 99px;
+      font-size: .7rem;
+      font-weight: 600;
+    }
+
+    .badge-SERI  { background: rgba(59,130,246,.2); color: #93c5fd; }
+    .badge-PER   { background: rgba(34,197,94,.2);  color: #86efac; }
+    .badge-pair  { background: rgba(168,85,247,.2); color: #d8b4fe; }
+
+    .melds-list { display: flex; flex-direction: column; gap: .6rem; }
+
+    .meld-row {
+      display: flex;
+      align-items: center;
+      gap: .5rem;
+      padding: .5rem .6rem;
+      background: var(--bg);
+      border-radius: 10px;
+      border: 1px solid var(--border);
+    }
+
+    .meld-type-badge {
+      font-size: .65rem;
+      font-weight: 700;
+      padding: .2rem .5rem;
+      border-radius: 5px;
+      white-space: nowrap;
+    }
+
+    .meld-score {
+      margin-left: auto;
+      font-size: .8rem;
+      color: var(--text-muted);
+    }
+
+    .tiles-inline { display: flex; flex-wrap: wrap; gap: .3rem; }
+
+    .tile-sm {
+      width: 38px;
+      height: 50px;
+      border-radius: 6px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: .85rem;
+      border: 1.5px solid transparent;
+    }
+
+    .tile-sm.RED    { background: rgba(153,27,27,.6); color: #fca5a5; border-color: #7f1d1d; }
+    .tile-sm.BLUE   { background: rgba(29,78,216,.6); color: #93c5fd; border-color: #1e3a8a; }
+    .tile-sm.YELLOW { background: rgba(161,98,7,.6);  color: #fde047; border-color: #713f12; }
+    .tile-sm.BLACK  { background: rgba(51,65,85,.6);  color: #cbd5e1; border-color: #1e293b; }
+    .tile-sm.JOKER  { background: rgba(109,40,217,.6); color: #d8b4fe; border-color: #4a1d96; }
+    .tile-sm .joker-sub { font-size: .45rem; opacity: .7; }
+
+    .empty-result {
+      text-align: center;
+      padding: 3rem;
+      color: var(--text-muted);
+      font-size: .95rem;
+    }
+
+    .empty-result .icon { font-size: 2.5rem; margin-bottom: .8rem; }
+
+    .remaining-area {
+      display: flex;
+      flex-wrap: wrap;
+      gap: .3rem;
+      padding: .8rem;
+      background: var(--bg);
+      border-radius: 10px;
+      border: 1px dashed var(--border);
+      min-height: 48px;
+    }
+
+    .remaining-label {
+      font-size: .75rem;
+      color: var(--text-muted);
+      margin-bottom: .4rem;
+    }
+
+    .example-btn {
+      font-size: .75rem;
+      color: var(--accent2);
+      background: none;
+      border: none;
+      cursor: pointer;
+      text-decoration: underline;
+      font-family: inherit;
+      padding: 0;
+    }
+
+    .pulse { animation: pulse 1.5s ease infinite; }
+    @keyframes pulse { 0%,100%{ box-shadow: 0 0 0 0 rgba(108,99,255,.4); } 50%{ box-shadow: 0 0 0 8px rgba(108,99,255,0); } }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>🀱 Okey Solver</h1>
+  <p>Taşlarını seç, en iyi dizilimi anında bul — <strong>okey-solver-ts</strong> kütüphanesi ile</p>
+</header>
+
+<div class="container">
+
+  <!-- LEFT: Input Panel -->
+  <div class="panel">
+    <h2>El Oluştur</h2>
+
+    <div class="input-row">
+      <select id="tileColor">
+        <option value="RED">🔴 Kırmızı</option>
+        <option value="BLUE">🔵 Mavi</option>
+        <option value="YELLOW">🟡 Sarı</option>
+        <option value="BLACK">⚫ Siyah</option>
+        <option value="JOKER">🃏 Sahte Okey</option>
+      </select>
+      <input type="number" id="tileValue" min="1" max="13" value="5" placeholder="Değer (1-13)"/>
+    </div>
+
+    <button class="btn-add pulse" onclick="addTile()">＋ Taş Ekle</button>
+
+    <div class="hand-area" id="handArea"></div>
+
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:.4rem">
+      <span style="font-size:.75rem;color:var(--text-muted)" id="tileCount">0 taş</span>
+      <button class="example-btn" onclick="loadExample()">Örnek El Yükle</button>
+    </div>
+
+    <!-- Okey Meta -->
+    <div class="okey-section">
+      <div class="toggle-okey">
+        <input type="checkbox" id="useOkey" onchange="toggleOkey()"/>
+        <label for="useOkey" style="font-size:.9rem;color:var(--text);cursor:pointer">Okey Taşı Belirt (Joker Modu)</label>
+      </div>
+
+      <div id="okeyFields" style="display:none">
+        <div class="input-row">
+          <select id="okeyColor">
+            <option value="RED">🔴 Kırmızı</option>
+            <option value="BLUE">🔵 Mavi</option>
+            <option value="YELLOW">🟡 Sarı</option>
+            <option value="BLACK">⚫ Siyah</option>
+          </select>
+          <input type="number" id="okeyValue" min="1" max="13" value="7" placeholder="Okey değeri"/>
+        </div>
+        <p style="font-size:.75rem;color:var(--text-muted);margin-top:.3rem">
+          Seçilen renk+değerdeki taşlar Joker (Wildcard) olarak kullanılır.
+        </p>
+      </div>
+    </div>
+
+    <div class="action-row">
+      <button class="btn-solve" onclick="solve()">⚡ En İyi Dizilim</button>
+      <button class="btn-pairs" onclick="findPairs()">👥 Çifte Git</button>
+      <button class="btn-clear" onclick="clearAll()">🗑 Temizle</button>
+    </div>
+  </div>
+
+  <!-- RIGHT: Result Panel -->
+  <div class="result-panel" id="resultPanel">
+    <div class="panel empty-result">
+      <div class="icon">🀱</div>
+      <p>Sol taraftan taşlarını ekleyip <strong>"En İyi Dizilim"</strong> butonuna bas.</p>
+    </div>
+  </div>
+
+</div>
+
+<script type="module">
+// ─── Inline copy of solver logic (bundled for browser use) ───────────────────
+// Since this is a vanilla HTML demo, we replicate the core logic.
+
+const ALL_COLORS = ['RED', 'BLACK', 'BLUE', 'YELLOW'];
+
+class RuleValidator {
+  static isPer(tiles, okeyMeta) {
+    if (tiles.length < 3 || tiles.length > 4) return false;
+    const eff = this.getEffectiveTiles(tiles, okeyMeta);
+    const firstValue = eff[0].value;
+    const colors = new Set();
+    for (const t of eff) {
+      if (t.value !== firstValue) return false;
+      if (colors.has(t.color)) return false;
+      colors.add(t.color);
+    }
+    return true;
+  }
+
+  static isSeri(tiles, allowOneAfter = true, okeyMeta) {
+    if (tiles.length < 3) return false;
+    const eff = this.getEffectiveTiles(tiles, okeyMeta);
+    const sorted = [...eff].sort((a, b) => a.value - b.value);
+    const fc = sorted[0].color;
+    let valid = true;
+    for (let i = 0; i < sorted.length; i++) {
+      if (sorted[i].color !== fc) return false;
+      if (i > 0 && sorted[i].value !== sorted[i-1].value + 1) { valid = false; break; }
+    }
+    if (valid) return true;
+    if (allowOneAfter && sorted[0].value === 1 && sorted[sorted.length-1].value === 13) {
+      let circ = true;
+      for (let i = 1; i < sorted.length; i++) {
+        if (sorted[i].color !== fc) return false;
+        if (i > 1 && sorted[i].value !== sorted[i-1].value + 1) { circ = false; break; }
+      }
+      if (circ) return true;
+    }
+    return false;
+  }
+
+  static evaluateGroup(tiles, okeyMeta) {
+    if (this.isPer(tiles, okeyMeta)) return 'PER';
+    if (this.isSeri(tiles, true, okeyMeta)) return 'SERI';
+    return 'INVALID';
+  }
+
+  static getEffectiveTile(tile, okeyMeta) {
+    if (!okeyMeta) return tile;
+    if (tile.color === 'JOKER') return { ...tile, color: okeyMeta.color, value: okeyMeta.value };
+    return tile;
+  }
+
+  static getEffectiveTiles(tiles, okeyMeta) { return tiles.map(t => this.getEffectiveTile(t, okeyMeta)); }
+}
+
+class SolverEngine {
+  static findBestArrangement(tiles, okeyMeta) {
+    const resolved = okeyMeta ? this.resolveFalseOkeys(tiles, okeyMeta) : tiles;
+    const wildcards = okeyMeta ? resolved.filter(t => t.color === okeyMeta.color && t.value === okeyMeta.value) : [];
+    const normalTiles = okeyMeta ? resolved.filter(t => !(t.color === okeyMeta.color && t.value === okeyMeta.value)) : resolved;
+    const allMelds = this.generateAllPossibleMelds(normalTiles, wildcards, okeyMeta);
+    let best = [], maxScore = 0;
+    const search = (arr, pool, idx) => {
+      const score = arr.reduce((s,m) => s + m.score, 0);
+      if (score > maxScore) { maxScore = score; best = [...arr]; }
+      for (let i = idx; i < allMelds.length; i++) {
+        if (this.canFormMeld(allMelds[i].tiles, pool)) {
+          const next = this.removeTilesFromPool(allMelds[i].tiles, pool);
+          arr.push(allMelds[i]);
+          search(arr, next, i + 1);
+          arr.pop();
+        }
+      }
+    };
+    search([], resolved, 0);
+    const usedIds = new Set();
+    best.forEach(m => m.tiles.forEach(t => usedIds.add(t.id)));
+    const remaining = resolved.filter(t => !usedIds.has(t.id));
+    return { melds: best, remainingTiles: remaining, totalScore: maxScore };
+  }
+
+  static findBestPairs(tiles, okeyMeta) {
+    const resolved = okeyMeta ? this.resolveFalseOkeys(tiles, okeyMeta) : tiles;
+    const wildcards = okeyMeta ? resolved.filter(t => t.color === okeyMeta.color && t.value === okeyMeta.value) : [];
+    const normalTiles = okeyMeta ? resolved.filter(t => !(t.color === okeyMeta.color && t.value === okeyMeta.value)) : resolved;
+    const pairs = [];
+    const usedIds = new Set();
+    for (let i = 0; i < normalTiles.length; i++) {
+      if (usedIds.has(normalTiles[i].id)) continue;
+      for (let j = i+1; j < normalTiles.length; j++) {
+        if (usedIds.has(normalTiles[j].id)) continue;
+        if (normalTiles[i].color === normalTiles[j].color && normalTiles[i].value === normalTiles[j].value) {
+          pairs.push([normalTiles[i], normalTiles[j]]);
+          usedIds.add(normalTiles[i].id); usedIds.add(normalTiles[j].id);
+          break;
+        }
+      }
+    }
+    let wLeft = [...wildcards];
+    for (const t of normalTiles) {
+      if (usedIds.has(t.id)) continue;
+      if (wLeft.length > 0) {
+        const w = wLeft.shift();
+        pairs.push([t, w]);
+        usedIds.add(t.id); usedIds.add(w.id);
+      }
+    }
+    while (wLeft.length >= 2) {
+      const w1 = wLeft.shift(), w2 = wLeft.shift();
+      pairs.push([w1, w2]);
+      usedIds.add(w1.id); usedIds.add(w2.id);
+    }
+    const remaining = resolved.filter(t => !usedIds.has(t.id));
+    return { pairs, remainingTiles: remaining, totalPairs: pairs.length };
+  }
+
+  static resolveFalseOkeys(tiles, okeyMeta) {
+    return tiles.map(t => t.color === 'JOKER' ? { ...t, color: okeyMeta.color, value: okeyMeta.value } : t);
+  }
+
+  static generateAllPossibleMelds(normal, wcs, okeyMeta) {
+    return [...this.generateAllPers(normal, wcs, okeyMeta), ...this.generateAllSeris(normal, wcs, okeyMeta)];
+  }
+
+  static generateAllSeris(normalTiles, wildcards, okeyMeta) {
+    const melds = [];
+    const numWc = wildcards.length;
+    const grouped = new Map();
+    for (const t of normalTiles) {
+      if (!grouped.has(t.color)) grouped.set(t.color, []);
+      grouped.get(t.color).push(t);
+    }
+    for (const [color, groupTiles] of grouped.entries()) {
+      const vmap = new Map();
+      for (const t of groupTiles) {
+        if (!vmap.has(t.value)) vmap.set(t.value, []);
+        vmap.get(t.value).push(t);
+      }
+      const cmap = new Map(vmap);
+      if (vmap.has(1)) cmap.set(14, vmap.get(1));
+      const vals = Array.from(cmap.keys()).sort((a,b)=>a-b);
+      for (const sv of vals) {
+        if (sv === 14) continue;
+        this._windowSeris(sv, color, cmap, numWc, wildcards, melds, okeyMeta);
+      }
+    }
+    return melds;
+  }
+
+  static _windowSeris(startVal, color, cmap, maxWc, wildcards, melds, okeyMeta) {
+    let cur = startVal, wcUsed = 0;
+    const win = [];
+    while (cur <= 14) {
+      if (cmap.has(cur)) { win.push({ val: cur, isWc: false }); }
+      else if (wcUsed < maxWc) { win.push({ val: cur, isWc: true }); wcUsed++; }
+      else break;
+      if (win.length >= 3) {
+        const normalPos = win.filter(w => !w.isWc);
+        const wcPos = win.filter(w => w.isWc);
+        const normOpts = normalPos.map(w => cmap.get(w.val));
+        const cart = this.cartesian(normOpts);
+        for (const ns of cart) {
+          if (wcPos.length > wildcards.length) continue;
+          const usedWc = wildcards.slice(0, wcPos.length);
+          const tileSet = [];
+          let ni = 0, wi = 0;
+          for (const w of win) {
+            if (w.isWc) {
+              tileSet.push({ ...usedWc[wi], color, value: w.val === 14 ? 1 : w.val });
+              wi++;
+            } else {
+              tileSet.push(ns[ni++]);
+            }
+          }
+          const norm = tileSet.map(t => ({ ...t, value: t.value === 14 ? 1 : t.value }));
+          if (RuleValidator.evaluateGroup(norm, okeyMeta) === 'SERI') {
+            melds.push({ type: 'SERI', tiles: norm, score: norm.reduce((s,t)=>s+t.value,0) });
+          }
+        }
+      }
+      cur++;
+      if (cur > 14) break;
+    }
+  }
+
+  static generateAllPers(normalTiles, wildcards, okeyMeta) {
+    const melds = [];
+    const numWc = wildcards.length;
+    const byVal = new Map();
+    for (const t of normalTiles) {
+      if (!byVal.has(t.value)) byVal.set(t.value, []);
+      byVal.get(t.value).push(t);
+    }
+    for (const [value, group] of byVal.entries()) {
+      const colorMap = new Map();
+      for (const t of group) {
+        if (!colorMap.has(t.color)) colorMap.set(t.color, []);
+        colorMap.get(t.color).push(t);
+      }
+      const avColors = Array.from(colorMap.keys());
+      if (avColors.length >= 3) {
+        for (const combo of this.combos(avColors, 3)) {
+          for (const ts of this.cartesian(combo.map(c => colorMap.get(c)))) {
+            if (RuleValidator.evaluateGroup(ts, okeyMeta) === 'PER') melds.push({ type: 'PER', tiles: ts, score: ts.reduce((s,t)=>s+t.value,0) });
+          }
+        }
+        if (avColors.length === 4) {
+          for (const ts of this.cartesian(avColors.map(c => colorMap.get(c)))) {
+            if (RuleValidator.evaluateGroup(ts, okeyMeta) === 'PER') melds.push({ type: 'PER', tiles: ts, score: ts.reduce((s,t)=>s+t.value,0) });
+          }
+        }
+      }
+      if (numWc >= 1 && avColors.length >= 2) {
+        for (const combo of this.combos(avColors, 2)) {
+          const usedSet = new Set(combo);
+          for (const cThird of ALL_COLORS.filter(c => !usedSet.has(c))) {
+            for (const ts of this.cartesian(combo.map(c => colorMap.get(c)))) {
+              const full = [...ts, { ...wildcards[0], color: cThird, value }];
+              if (RuleValidator.evaluateGroup(full, okeyMeta) === 'PER') melds.push({ type: 'PER', tiles: full, score: full.reduce((s,t)=>s+t.value,0) });
+            }
+          }
+        }
+      }
+      if (numWc >= 2 && avColors.length >= 1) {
+        for (const bc of avColors) {
+          for (const bTile of colorMap.get(bc)) {
+            for (const cp of this.combos(ALL_COLORS.filter(c=>c!==bc), 2)) {
+              const full = [bTile, { ...wildcards[0], color: cp[0], value }, { ...wildcards[1], color: cp[1], value }];
+              if (RuleValidator.evaluateGroup(full, okeyMeta) === 'PER') melds.push({ type: 'PER', tiles: full, score: full.reduce((s,t)=>s+t.value,0) });
+            }
+          }
+        }
+      }
+      if (numWc >= 1 && avColors.length === 3) {
+        const miss = ALL_COLORS.find(c => !avColors.includes(c));
+        for (const ts of this.cartesian(avColors.map(c => colorMap.get(c)))) {
+          const full = [...ts, { ...wildcards[0], color: miss, value }];
+          if (RuleValidator.evaluateGroup(full, okeyMeta) === 'PER') melds.push({ type: 'PER', tiles: full, score: full.reduce((s,t)=>s+t.value,0) });
+        }
+      }
+    }
+    return melds;
+  }
+
+  static combos(arr, size) {
+    const res = [];
+    const fn = (s, cur) => {
+      if (cur.length === size) { res.push([...cur]); return; }
+      for (let i = s; i < arr.length; i++) { cur.push(arr[i]); fn(i+1, cur); cur.pop(); }
+    };
+    fn(0, []); return res;
+  }
+
+  static cartesian(arrays) {
+    if (!arrays || arrays.length === 0) return [[]];
+    return arrays.reduce((acc, curr) => {
+      const res = [];
+      acc.forEach(a => curr.forEach(c => res.push([...a, c])));
+      return res;
+    }, [[]]);
+  }
+
+  static canFormMeld(needed, pool) {
+    const counts = new Map();
+    pool.forEach(t => counts.set(t.id, (counts.get(t.id) ?? 0) + 1));
+    const need = new Map();
+    needed.forEach(t => need.set(t.id, (need.get(t.id) ?? 0) + 1));
+    for (const [id, cnt] of need.entries()) if ((counts.get(id) ?? 0) < cnt) return false;
+    return true;
+  }
+
+  static removeTilesFromPool(used, pool) {
+    const rem = [...pool];
+    for (const u of used) { const idx = rem.findIndex(t => t.id === u.id); if (idx !== -1) rem.splice(idx, 1); }
+    return rem;
+  }
+}
+
+// ─── UI Logic ────────────────────────────────────────────────────────────────
+let hand = [];
+let tileIdCounter = 0;
+
+const colorNames = { RED:'Kırmızı', BLUE:'Mavi', YELLOW:'Sarı', BLACK:'Siyah', JOKER:'Sahte Okey' };
+
+function addTile() {
+  const color = document.getElementById('tileColor').value;
+  const value = parseInt(document.getElementById('tileValue').value) || 1;
+  const clampedValue = Math.min(Math.max(value, 1), 13);
+  const id = `tile_${++tileIdCounter}`;
+  hand.push({ id, color, value: color === 'JOKER' ? 0 : clampedValue });
+  renderHand();
+}
+
+function removeTile(id) {
+  hand = hand.filter(t => t.id !== id);
+  renderHand();
+}
+
+function clearAll() {
+  hand = [];
+  renderHand();
+  document.getElementById('resultPanel').innerHTML = `
+    <div class="panel empty-result">
+      <div class="icon">🀱</div>
+      <p>Sol taraftan taşlarını ekleyip <strong>"En İyi Dizilim"</strong> butonuna bas.</p>
+    </div>`;
+}
+
+function toggleOkey() {
+  const show = document.getElementById('useOkey').checked;
+  document.getElementById('okeyFields').style.display = show ? 'block' : 'none';
+}
+
+function getOkeyMeta() {
+  if (!document.getElementById('useOkey').checked) return undefined;
+  return {
+    color: document.getElementById('okeyColor').value,
+    value: parseInt(document.getElementById('okeyValue').value) || 7
+  };
+}
+
+function renderHand() {
+  const area = document.getElementById('handArea');
+  area.innerHTML = '';
+  area.className = 'hand-area' + (hand.length === 0 ? ' empty' : '');
+  hand.forEach(t => {
+    const div = document.createElement('div');
+    div.className = `tile ${t.color}`;
+    div.title = `${colorNames[t.color]} ${t.value} — Kaldırmak için tıkla`;
+    div.onclick = () => removeTile(t.id);
+    div.innerHTML = `<span>${t.color === 'JOKER' ? '★' : t.value}</span><span class="tile-label">${colorNames[t.color].slice(0,3)}</span>`;
+    area.appendChild(div);
+  });
+  document.getElementById('tileCount').textContent = `${hand.length} taş`;
+}
+
+function renderTileSmall(t) {
+  const isJoker = t._isWildcard;
+  return `<div class="tile-sm ${t.color}" title="${colorNames[t.color] || t.color} ${t.value}">
+    ${isJoker ? `<span style="font-size:.55rem;opacity:.6">★</span>` : ''}
+    <span>${t.value}</span>
+  </div>`;
+}
+
+function solve() {
+  if (hand.length === 0) { alert('Lütfen önce taş ekleyin!'); return; }
+  const okeyMeta = getOkeyMeta();
+  const result = SolverEngine.findBestArrangement([...hand], okeyMeta);
+  renderSolveResult(result, okeyMeta);
+}
+
+function findPairs() {
+  if (hand.length === 0) { alert('Lütfen önce taş ekleyin!'); return; }
+  const okeyMeta = getOkeyMeta();
+  const result = SolverEngine.findBestPairs([...hand], okeyMeta);
+  renderPairsResult(result);
+}
+
+function renderSolveResult(result, okeyMeta) {
+  const panel = document.getElementById('resultPanel');
+  const okeyNote = okeyMeta ? `<span style="font-size:.75rem;color:var(--accent2)">Joker: ${colorNames[okeyMeta.color]} ${okeyMeta.value}</span>` : '';
+
+  let meldsHtml = '';
+  if (result.melds.length === 0) {
+    meldsHtml = `<p style="color:var(--text-muted);font-size:.9rem;text-align:center;padding:1rem">Hiçbir geçerli per veya seri bulunamadı.</p>`;
+  } else {
+    meldsHtml = result.melds.map((m, i) => `
+      <div class="meld-row">
+        <span class="meld-type-badge badge-${m.type}">${m.type}</span>
+        <div class="tiles-inline">${m.tiles.map(t => renderTileSmall(t)).join('')}</div>
+        <span class="meld-score">${m.score} puan</span>
+      </div>`).join('');
+  }
+
+  const remainHtml = result.remainingTiles.length > 0
+    ? result.remainingTiles.map(t => renderTileSmall(t)).join('')
+    : `<span style="color:var(--success);font-size:.85rem">🎉 Tüm taşlar kullanıldı!</span>`;
+
+  panel.innerHTML = `
+    <div class="score-bar">
+      <div class="score-card"><div class="val">${result.totalScore}</div><div class="lbl">Toplam Puan</div></div>
+      <div class="score-card"><div class="val">${result.melds.length}</div><div class="lbl">Grup Sayısı</div></div>
+      <div class="score-card"><div class="val">${result.remainingTiles.length}</div><div class="lbl">Boşta Kalan</div></div>
+    </div>
+    <div class="panel">
+      <h2>En İyi Dizilim ${okeyNote}</h2>
+      <div class="melds-list">${meldsHtml}</div>
+    </div>
+    <div class="panel">
+      <h2>Boşta Kalan Taşlar</h2>
+      <div class="remaining-area">${remainHtml}</div>
+    </div>`;
+}
+
+function renderPairsResult(result) {
+  const panel = document.getElementById('resultPanel');
+
+  let pairsHtml = '';
+  if (result.pairs.length === 0) {
+    pairsHtml = `<p style="color:var(--text-muted);font-size:.9rem;text-align:center;padding:1rem">Hiçbir özdeş çift bulunamadı.</p>`;
+  } else {
+    pairsHtml = result.pairs.map(([a, b]) => `
+      <div class="meld-row">
+        <span class="meld-type-badge badge-pair">ÇİFT</span>
+        <div class="tiles-inline">${renderTileSmall(a)}${renderTileSmall(b)}</div>
+        <span class="meld-score">${a.value * 2} puan</span>
+      </div>`).join('');
+  }
+
+  const canGoDouble = result.totalPairs >= 7;
+  const status = canGoDouble
+    ? `<div style="padding:.8rem;background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.3);border-radius:10px;color:#86efac;font-weight:600;text-align:center">✅ 7 çift tamamlandı — Çifte Gitme mümkün!</div>`
+    : `<div style="padding:.8rem;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);border-radius:10px;color:#fca5a5;font-weight:600;text-align:center">❌ ${result.totalPairs}/7 çift — Çifte gitmek için yeterli değil</div>`;
+
+  const remainHtml = result.remainingTiles.length > 0
+    ? result.remainingTiles.map(t => renderTileSmall(t)).join('')
+    : `<span style="color:var(--success);font-size:.85rem">Tüm taşlar çift oldu!</span>`;
+
+  panel.innerHTML = `
+    <div class="score-bar">
+      <div class="score-card"><div class="val">${result.totalPairs}</div><div class="lbl">Çift Sayısı</div></div>
+      <div class="score-card"><div class="val">${7 - result.totalPairs > 0 ? 7 - result.totalPairs : 0}</div><div class="lbl">Eksik Çift</div></div>
+    </div>
+    ${status}
+    <div class="panel">
+      <h2>Bulunan Özdeş Çiftler</h2>
+      <div class="melds-list">${pairsHtml}</div>
+    </div>
+    <div class="panel">
+      <h2>Boşta Kalan Taşlar</h2>
+      <div class="remaining-area">${remainHtml}</div>
+    </div>`;
+}
+
+function loadExample() {
+  hand = [];
+  tileIdCounter = 0;
+  // Örnek: R7-R8-R9 seri + Y5-B5-BK5 per + R12-R13-R1 döngüsel seri + boşta 2 taş
+  const exampleTiles = [
+    { color: 'RED', value: 7 }, { color: 'RED', value: 8 }, { color: 'RED', value: 9 },
+    { color: 'YELLOW', value: 5 }, { color: 'BLUE', value: 5 }, { color: 'BLACK', value: 5 },
+    { color: 'RED', value: 12 }, { color: 'RED', value: 13 }, { color: 'RED', value: 1 },
+    { color: 'BLUE', value: 11 }, { color: 'BLACK', value: 3 },
+  ];
+  exampleTiles.forEach(t => hand.push({ ...t, id: `tile_${++tileIdCounter}` }));
+  renderHand();
+}
+
+// Init
+renderHand();
+</script>
+
+</body>
+</html>
