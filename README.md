@@ -1,5 +1,11 @@
 # Okey Solver TS
 
+[![npm version](https://img.shields.io/npm/v/okey-solver-ts.svg?style=flat-square)](https://www.npmjs.com/package/okey-solver-ts)
+[![npm downloads](https://img.shields.io/npm/dt/okey-solver-ts.svg?style=flat-square)](https://www.npmjs.com/package/okey-solver-ts)
+[![TypeScript](https://img.shields.io/badge/%3C%2F%3E-TypeScript-%230074c1.svg?style=flat-square)](https://www.typescriptlang.org/)
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg?style=flat-square)](https://opensource.org/licenses/Apache-2.0)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square)](http://makeapullrequest.com)
+
 A TypeScript library for evaluating and finding the best arrangement of tiles for games like Rummikub and Okey 101.
 
 ## Features
@@ -80,4 +86,4 @@ If you want to contribute or build locally:
 
 ## License
 
-This project is open-sourced under the MIT License.
+This project is open-sourced under the Apache-2.0 License. See the [LICENSE](LICENSE) file for details.
