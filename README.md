@@ -1,5 +1,9 @@
-# Okey Solver TS
+<div align="center">
+  <img src=".github/screenshots/okey-solver-logo.png" alt="Okey Solver TS Logo" width="200" />
+  <h1>Okey Solver TS</h1>
+</div>
 
+---
 [![npm version](https://img.shields.io/npm/v/okey-solver-ts.svg?style=flat-square)](https://www.npmjs.com/package/okey-solver-ts)
 [![npm downloads](https://img.shields.io/npm/dt/okey-solver-ts.svg?style=flat-square)](https://www.npmjs.com/package/okey-solver-ts)
 [![TypeScript](https://img.shields.io/badge/%3C%2F%3E-TypeScript-%230074c1.svg?style=flat-square)](https://www.typescriptlang.org/)
