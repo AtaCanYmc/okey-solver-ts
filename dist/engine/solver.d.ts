@@ -1,15 +1,45 @@
-import { Tile, Arrangement } from '../types';
+import { Tile, Arrangement, OkeyMeta } from '../types';
 export declare class SolverEngine {
     /**
-     * Karışık bir eli alır ve en optimum dizilimi döndürür.
+     * Karışık bir eli alır ve en optimum per/seri dizilimini döndürür.
+     * @param tiles - Eldeki taşlar
+     * @param okeyMeta - Hangi taşın "Okey" (Joker/Wildcard) olduğunu belirtir
      */
-    static findBestArrangement(tiles: Tile[]): Arrangement;
+    static findBestArrangement(tiles: Tile[], okeyMeta?: OkeyMeta): Arrangement;
+    /**
+     * Çifte Gitme: Eldeki taşlardan en fazla "özdeş çift (identical pair)" bulur.
+     * 101 ve Okey'de 7 çift yaparak çıkılabilir.
+     * @param tiles - Eldeki taşlar
+     * @param okeyMeta - Hangi taşın Okey olduğunu belirtir
+     * @returns Bulunan çiftler ve kalan taşlar
+     */
+    static findBestPairs(tiles: Tile[], okeyMeta?: OkeyMeta): {
+        pairs: [Tile, Tile][];
+        remainingTiles: Tile[];
+        totalPairs: number;
+    };
+    /**
+     * Sahte Okey taşlarını, gerçek "Okey" taşının değerine dönüştürür.
+     * Sahte Okey'in rengi ve değeri, gerçek okey taşıyla aynı olur.
+     */
+    private static resolveFalseOkeys;
     /**
      * Eldeki taşlardan üretilebilecek TÜM olası üçlü/dörtlü kombinasyonları çıkarır.
-     * (Brute-force kombinasyon üreticisi)
      */
     private static generateAllPossibleMelds;
+    /**
+     * Circular Sliding Window ile seri üretir. 12-13-1 desteğiyle.
+     * Okey (Wildcard) taşlarını eksik pozisyonlara yerleştirir.
+     */
     private static generateAllSeris;
+    /**
+     * Verilen başlangıç değerinden itibaren kayan pencere ile seri üretir.
+     * Joker taşlar, eksik değerlerin yerine geçer.
+     */
+    private static generateWindowedSeris;
+    /**
+     * Per jeneratörü. Joker (Wildcard) taşları eksik renklerin yerine geçer.
+     */
     private static generateAllPers;
     /**
      * Verilen bir diziden, istenen boyutta tüm kombinasyonları (sırasız alt kümeler) çıkarır.
@@ -17,8 +47,6 @@ export declare class SolverEngine {
     private static getCombinations;
     /**
      * Birden fazla dizinin Kartezyen Çarpımını (Cartesian Product) alır.
-     * Amacı: Elimizde iki adet Kırmızı 5 ve bir adet Kırmızı 6, Kırmızı 7 varsa,
-     * bize iki farklı seri ihtimalini (R5_A-R6-R7 ve R5_B-R6-R7) döndürmesidir.
      */
     private static cartesianProduct;
     /**
@@ -30,7 +58,7 @@ export declare class SolverEngine {
      */
     private static removeTilesFromPool;
     /**
-     * Dizilimin toplam değerini hesaplar. Optimizasyon hedefine göre değişir.
+     * Dizilimin toplam değerini hesaplar.
      */
     private static calculateArrangementScore;
     private static getRemainingTiles;

@@ -20,7 +20,7 @@
   },
   "scripts": {
     "build": "tsc",
-    "test": "jest",
+    "test": "jest --config jest.config.ts",
     "lint": "eslint src --ext .ts",
     "format": "prettier --write \"src/**/*.ts\""
   },
@@ -36,11 +36,9 @@
     "ts-jest": "^29.4.11",
     "typescript": "^5.5.3"
   },
-  "jest": {
-    "preset": "ts-jest",
-    "testEnvironment": "node",
-    "testMatch": [
-      "**/test/**/*.test.ts"
-    ]
-  }
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ]
 }
