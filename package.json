@@ -1,6 +1,6 @@
 {
   "name": "okey-solver-ts",
-  "version": "0.2.1",
+  "version": "0.3.0",
   "description": "A TypeScript library for evaluating and finding the best arrangement of tiles for games like Rummikub and Okey 101.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

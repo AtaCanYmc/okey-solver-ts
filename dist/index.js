@@ -15,9 +15,16 @@ var __exportStar = (this && this.__exportStar) || function(m, exports) {
     for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports, p)) __createBinding(exports, m, p);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.SolverEngine = exports.RuleValidator = void 0;
+exports.PairFinder = exports.BacktrackingSolver = exports.MeldGenerator = exports.SolverEngine = exports.RuleValidator = exports.OkeyRuleValidator = void 0;
 __exportStar(require("./types"), exports);
 var validator_1 = require("./rules/validator");
+Object.defineProperty(exports, "OkeyRuleValidator", { enumerable: true, get: function () { return validator_1.OkeyRuleValidator; } });
 Object.defineProperty(exports, "RuleValidator", { enumerable: true, get: function () { return validator_1.RuleValidator; } });
 var solver_1 = require("./engine/solver");
 Object.defineProperty(exports, "SolverEngine", { enumerable: true, get: function () { return solver_1.SolverEngine; } });
+var meld_generator_1 = require("./engine/meld-generator");
+Object.defineProperty(exports, "MeldGenerator", { enumerable: true, get: function () { return meld_generator_1.MeldGenerator; } });
+var backtracking_solver_1 = require("./engine/backtracking-solver");
+Object.defineProperty(exports, "BacktrackingSolver", { enumerable: true, get: function () { return backtracking_solver_1.BacktrackingSolver; } });
+var pair_finder_1 = require("./engine/pair-finder");
+Object.defineProperty(exports, "PairFinder", { enumerable: true, get: function () { return pair_finder_1.PairFinder; } });
