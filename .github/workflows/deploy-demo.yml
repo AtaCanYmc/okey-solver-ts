@@ -40,7 +40,7 @@ jobs:
         run: npm ci
 
       - name: Run linter
-        run: npm run lint || true   # lint hataları deploy'u engellemez, sadece raporlar
+        run: npm run lint
 
       - name: Run tests
         run: npm test

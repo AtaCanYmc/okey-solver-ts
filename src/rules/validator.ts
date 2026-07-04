@@ -1,11 +1,12 @@
 // src/rules/validator.ts
 import { Tile, MeldType, OkeyMeta } from '../types';
+import { IRuleValidator } from './rule-validator.interface';
 
-export class RuleValidator {
+export class OkeyRuleValidator implements IRuleValidator {
     /**
      * Grubun geçerli bir "Per" (Aynı sayı, farklı renk) olup olmadığını kontrol eder.
      */
-    public static isPer(tiles: Tile[], okeyMeta?: OkeyMeta): boolean {
+    public isPer(tiles: Tile[], okeyMeta?: OkeyMeta): boolean {
         if (tiles.length < 3 || tiles.length > 4) return false;
 
         const effectiveTiles = this.getEffectiveTiles(tiles, okeyMeta);
@@ -24,46 +25,41 @@ export class RuleValidator {
     /**
      * Grubun geçerli bir "Seri" (Aynı renk, ardışık sayı) olup olmadığını kontrol eder.
      */
-    public static isSeri(tiles: Tile[], allowOneAfter = true, okeyMeta?: OkeyMeta): boolean {
+    public isSeri(tiles: Tile[], allowOneAfter = true, okeyMeta?: OkeyMeta): boolean {
         if (tiles.length < 3) return false;
 
         const effectiveTiles = this.getEffectiveTiles(tiles, okeyMeta);
-        
+
         // Taşları değerlerine göre küçükten büyüğe sırala
         const sortedTiles = [...effectiveTiles].sort((a, b) => a.value - b.value);
         const firstColor = sortedTiles[0].color;
-        
-        let isValidSequence = true;
+
+        let isNormal = true;
+        let isCircular = true;
 
         for (let i = 0; i < sortedTiles.length; i++) {
             if (sortedTiles[i].color !== firstColor) return false; // Renkler aynı olmalı
 
             if (i > 0) {
-                const prevValue = sortedTiles[i - 1].value;
-                const currentValue = sortedTiles[i].value;
-
-                if (currentValue !== prevValue + 1) {
-                    isValidSequence = false;
-                    break;
+                if (sortedTiles[i].value !== sortedTiles[i - 1].value + 1) {
+                    isNormal = false;
+                }
+                if (i > 1 && sortedTiles[i].value !== sortedTiles[i - 1].value + 1) {
+                    isCircular = false;
                 }
             }
         }
-        
-        if (isValidSequence) return true;
-        
+
+        if (isNormal) return true;
+
         // 12-13-1 durumunu kontrol et
-        if (allowOneAfter && sortedTiles[0].value === 1 && sortedTiles[sortedTiles.length - 1].value === 13) {
-            let isValidCircular = true;
-            for(let i = 1; i < sortedTiles.length; i++) {
-                if (sortedTiles[i].color !== firstColor) return false;
-                if (i > 1) {
-                    if (sortedTiles[i].value !== sortedTiles[i - 1].value + 1) {
-                        isValidCircular = false;
-                        break;
-                    }
-                }
-            }
-            if (isValidCircular) return true;
+        if (
+            allowOneAfter &&
+            isCircular &&
+            sortedTiles[0].value === 1 &&
+            sortedTiles[sortedTiles.length - 1].value === 13
+        ) {
+            return true;
         }
 
         return false;
@@ -72,7 +68,7 @@ export class RuleValidator {
     /**
      * Taş grubunu analiz edip tipini döndürür.
      */
-    public static evaluateGroup(tiles: Tile[], okeyMeta?: OkeyMeta): MeldType {
+    public evaluateGroup(tiles: Tile[], okeyMeta?: OkeyMeta): MeldType {
         if (this.isPer(tiles, okeyMeta)) return 'PER';
         if (this.isSeri(tiles, true, okeyMeta)) return 'SERI';
         if (tiles.length === 2 && this.isTilesSame(tiles[0], tiles[1], okeyMeta)) return 'CIFT';
@@ -82,32 +78,56 @@ export class RuleValidator {
     /**
      * Taşlar aynı renk ve aynı değerde mi?
      */
-    public static isTilesSame(tileA: Tile, tileB: Tile, okeyMeta?: OkeyMeta) {
+    public isTilesSame(tileA: Tile, tileB: Tile, okeyMeta?: OkeyMeta): boolean {
         const effA = this.getEffectiveTile(tileA, okeyMeta);
         const effB = this.getEffectiveTile(tileB, okeyMeta);
         return effA.value === effB.value && effA.color === effB.color;
     }
-    
+
     /**
-     * JOKER (Sahte Okey) taşını gerçek okey değerine,
-     * Okey (Joker) taşını da gerektiği durumda (bu fonksiyonda değil, engine'de) dönüştürür.
+     * JOKER (Sahte Okey) taşını gerçek okey değerine dönüştürür.
      */
-    public static getEffectiveTile(tile: Tile, okeyMeta?: OkeyMeta): Tile {
+    public getEffectiveTile(tile: Tile, okeyMeta?: OkeyMeta): Tile {
         if (!okeyMeta) return tile;
-        
+
         // Sahte okey, Okey taşı yerine geçer.
         if (tile.color === 'JOKER') {
             return { ...tile, color: okeyMeta.color, value: okeyMeta.value };
         }
-        
-        // Okey taşı (Wildcard) engine tarafından zaten hedeflenen değerle (efektif) gelir.
-        // Bu yüzden eğer validator.ts 'efektif' haliyle çağrılıyorsa buna ek bir şey yapmamıza gerek yok,
-        // ancak engine "şu taş Okey taşı, bunu her şeye dönüştür" demesi için, 
-        // engine wildcard taşların değerini `simulate` eder.
+
         return tile;
     }
-    
+
+    public getEffectiveTiles(tiles: Tile[], okeyMeta?: OkeyMeta): Tile[] {
+        return tiles.map((t) => this.getEffectiveTile(t, okeyMeta));
+    }
+}
+
+// Backward compatible static class wrapper
+export class RuleValidator {
+    private static validator = new OkeyRuleValidator();
+
+    public static isPer(tiles: Tile[], okeyMeta?: OkeyMeta): boolean {
+        return this.validator.isPer(tiles, okeyMeta);
+    }
+
+    public static isSeri(tiles: Tile[], allowOneAfter = true, okeyMeta?: OkeyMeta): boolean {
+        return this.validator.isSeri(tiles, allowOneAfter, okeyMeta);
+    }
+
+    public static evaluateGroup(tiles: Tile[], okeyMeta?: OkeyMeta): MeldType {
+        return this.validator.evaluateGroup(tiles, okeyMeta);
+    }
+
+    public static isTilesSame(tileA: Tile, tileB: Tile, okeyMeta?: OkeyMeta): boolean {
+        return this.validator.isTilesSame(tileA, tileB, okeyMeta);
+    }
+
+    public static getEffectiveTile(tile: Tile, okeyMeta?: OkeyMeta): Tile {
+        return this.validator.getEffectiveTile(tile, okeyMeta);
+    }
+
     public static getEffectiveTiles(tiles: Tile[], okeyMeta?: OkeyMeta): Tile[] {
-        return tiles.map(t => this.getEffectiveTile(t, okeyMeta));
+        return this.validator.getEffectiveTiles(tiles, okeyMeta);
     }
 }

@@ -26,4 +26,3 @@ export interface Arrangement {
     remainingTiles: Tile[];
     totalScore: number;
 }
-
