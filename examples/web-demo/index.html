@@ -468,6 +468,10 @@
           Seçilen renk+değerdeki taşlar Joker (Wildcard) olarak kullanılır.
         </p>
       </div>
+      <div class="toggle-okey" style="margin-top: 0.8rem; border-top: 1px solid var(--border); padding-top: 0.8rem;">
+        <input type="checkbox" id="allowCircular" checked/>
+        <label for="allowCircular" style="font-size:.9rem;color:var(--text);cursor:pointer">12-13-1 Seri Ardışıklığına İzin Ver</label>
+      </div>
     </div>
 
     <div class="action-row">
@@ -529,9 +533,9 @@ class RuleValidator {
     return false;
   }
 
-  static evaluateGroup(tiles, okeyMeta) {
+  static evaluateGroup(tiles, okeyMeta, allowOneAfter = true) {
     if (this.isPer(tiles, okeyMeta)) return 'PER';
-    if (this.isSeri(tiles, true, okeyMeta)) return 'SERI';
+    if (this.isSeri(tiles, allowOneAfter, okeyMeta)) return 'SERI';
     return 'INVALID';
   }
 
@@ -545,11 +549,11 @@ class RuleValidator {
 }
 
 class SolverEngine {
-  static findBestArrangement(tiles, okeyMeta) {
+  static findBestArrangement(tiles, okeyMeta, allowOneAfter = true) {
     const resolved = okeyMeta ? this.resolveFalseOkeys(tiles, okeyMeta) : tiles;
     const wildcards = okeyMeta ? resolved.filter(t => t.color === okeyMeta.color && t.value === okeyMeta.value) : [];
     const normalTiles = okeyMeta ? resolved.filter(t => !(t.color === okeyMeta.color && t.value === okeyMeta.value)) : resolved;
-    const allMelds = this.generateAllPossibleMelds(normalTiles, wildcards, okeyMeta);
+    const allMelds = this.generateAllPossibleMelds(normalTiles, wildcards, okeyMeta, allowOneAfter);
     let best = [], maxScore = 0;
     const search = (arr, pool, idx) => {
       const score = arr.reduce((s,m) => s + m.score, 0);
@@ -609,11 +613,11 @@ class SolverEngine {
     return tiles.map(t => t.color === 'JOKER' ? { ...t, color: okeyMeta.color, value: okeyMeta.value } : t);
   }
 
-  static generateAllPossibleMelds(normal, wcs, okeyMeta) {
-    return [...this.generateAllPers(normal, wcs, okeyMeta), ...this.generateAllSeris(normal, wcs, okeyMeta)];
+  static generateAllPossibleMelds(normal, wcs, okeyMeta, allowOneAfter = true) {
+    return [...this.generateAllPers(normal, wcs, okeyMeta), ...this.generateAllSeris(normal, wcs, okeyMeta, allowOneAfter)];
   }
 
-  static generateAllSeris(normalTiles, wildcards, okeyMeta) {
+  static generateAllSeris(normalTiles, wildcards, okeyMeta, allowOneAfter = true) {
     const melds = [];
     const numWc = wildcards.length;
     const grouped = new Map();
@@ -628,17 +632,17 @@ class SolverEngine {
         vmap.get(t.value).push(t);
       }
       const cmap = new Map(vmap);
-      if (vmap.has(1)) cmap.set(14, vmap.get(1));
+      if (allowOneAfter && vmap.has(1)) cmap.set(14, vmap.get(1));
       const vals = Array.from(cmap.keys()).sort((a,b)=>a-b);
       for (const sv of vals) {
         if (sv === 14) continue;
-        this._windowSeris(sv, color, cmap, numWc, wildcards, melds, okeyMeta);
+        this._windowSeris(sv, color, cmap, numWc, wildcards, melds, okeyMeta, allowOneAfter);
       }
     }
     return melds;
   }
 
-  static _windowSeris(startVal, color, cmap, maxWc, wildcards, melds, okeyMeta) {
+  static _windowSeris(startVal, color, cmap, maxWc, wildcards, melds, okeyMeta, allowOneAfter = true) {
     let cur = startVal, wcUsed = 0;
     const win = [];
     while (cur <= 14) {
@@ -664,7 +668,7 @@ class SolverEngine {
             }
           }
           const norm = tileSet.map(t => ({ ...t, value: t.value === 14 ? 1 : t.value }));
-          if (RuleValidator.evaluateGroup(norm, okeyMeta) === 'SERI') {
+          if (RuleValidator.evaluateGroup(norm, okeyMeta, allowOneAfter) === 'SERI') {
             melds.push({ type: 'SERI', tiles: norm, score: norm.reduce((s,t)=>s+t.value,0) });
           }
         }
@@ -836,7 +840,8 @@ function renderTileSmall(t) {
 function solve() {
   if (hand.length === 0) { alert('Lütfen önce taş ekleyin!'); return; }
   const okeyMeta = getOkeyMeta();
-  const result = SolverEngine.findBestArrangement([...hand], okeyMeta);
+  const allowCircular = document.getElementById('allowCircular').checked;
+  const result = SolverEngine.findBestArrangement([...hand], okeyMeta, allowCircular);
   renderSolveResult(result, okeyMeta);
 }
 
